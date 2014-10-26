@@ -71,8 +71,8 @@ int yylex()
   int ch_double=0;
   int nowLine; //現在の行数、"//"の読み飛ばしに利用
   char first_c;
-  static unsigned char skipped; //skipprd 一文字余分に読んだときのために代入
-  string *id;// 識別子にいれるため
+  //static unsigned char skipped; //skipprd 一文字余分に読んだときのために代入
+  //string *id;// 識別子にいれるため
   
   /*
   if(skipped < 128 && skipped >= ' ' ){ //余分に読み込んでいる  
@@ -102,14 +102,15 @@ int yylex()
     //return getIdentifier(first_c); //最初の英字を使う
     return getIdentifier(currentChar);
   }
-  else if(currentChar == Cadd){
+ if(currentChar == Cadd){
     yylval.op = Cadd;
     currentChar = getCharacter();
     return ADDOP;
   }
   else if(currentChar == Csubtract){ //加減算
     //加算と減算で別々の処理をするのは仕様にかいてあったため(ADDOPの表) 
-    yylval.op = Cadd;
+    yylval.op = Csubtract;
+    currentChar = getCharacter();
     return ADDOP;
   }
   else if(currentChar == Cmultiply){ //剰余算、のかけ算を判定
@@ -118,22 +119,25 @@ int yylex()
     currentChar = getCharacter();
     return MULOP;
   }
-  else if(currentChar == Cmodulo){
-    yylval.op = Cmodulo;
-    currentChar = getCharacter();
-    return MULOP;
-  }
   else if(currentChar == Cdivide){// "/"を読んだ後
     currentChar = getCharacter();
     if(currentChar == Cdivide){// "//" を読み、コメント文と判明
-      //改行かEOFまで読み進め
-      while(getCharacter() != EOF || lineNo == nowLine );
+      //改行かEOFまで読み進める
+      while(currentChar != '\n' && currentChar != EOF){
+        currentChar = getCharacter();
+      }
+      goto START;
     }
     else{// "/" 以外の文字を読んだ場合
       yylval.op = Cdivide;//return MULOP;
       //skipped = currentChar;//一文字余分に読んでる
       return MULOP;
     }
+  }
+  else if(currentChar == Cmodulo){
+    yylval.op = Cmodulo;
+    currentChar = getCharacter();
+    return MULOP;
   }
   else if(currentChar == Cand){ // "&"を読んだ後
     currentChar = getCharacter();
@@ -201,6 +205,7 @@ static int getCharacter()
   //retにファイルから読み込んだ一文字を代入
   char ret;
   ret = fgetc(srcFilePointer);
+  cerr << ret << ", ";
   //改行文字を読み込んだ場合の処理
   if(ret == '\n'){ 
     lineNo += 1;
