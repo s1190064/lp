@@ -2,6 +2,7 @@ using namespace std;
 
 #include <string>
 #include <stdio.h>
+#include <stdlib.h>
 #include "../token.h"
 #include "../scanner.h"
 #include "../error.h"
@@ -16,7 +17,7 @@ static const char *getOperatorString(int op);
 static const char *getTokenName(int id);
 
 
-main()
+int main()
 {
   int token, i, id, num, op;
 
@@ -68,6 +69,7 @@ main()
     fprintf(stderr,"OK\n");
   }
   exit(0);
+  return 0;
 }
 
 void makeTestFile(const char *name)
@@ -93,7 +95,7 @@ void tokenMismatch(int i, int token)
           getTokenName(tokens[i]),getTokenName(token));
   switch (token)  {
   case ID:
-    fprintf(stderr,"(%s)",yylval.symbol);
+    fprintf(stderr,"(%s)",yylval.symbol->c_str());
     break;
   case NUM:
     fprintf(stderr,"(%d)",yylval.num);
