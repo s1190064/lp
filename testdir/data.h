@@ -1,0 +1,37 @@
+#ifdef TEST1
+  #include "data1.h"
+#elif TEST2
+  #include "data2.h"
+#elif TEST3
+  #include "data3.h"
+#elif TEST4
+  #include "data4.h"
+#elif TEST5
+  #include "data5.h"
+#elif TEST6
+  #include "data6.h"
+#elif TEST7
+  #include "data7.h"
+#elif TEST8
+  #include "data8.h"
+#elif TEST9
+  #include "data9.h"
+#elif TEST10
+  #include "data10.h"
+#elif TEST11
+  #include "data11.h"
+#elif TEST12
+  #include "data12.h"
+#elif TEST13
+  #include "data13.h"
+#elif TEST14
+  #include "data14.h"
+#elif TEST15
+  #include "data15.h"
+#elif TEST16
+  #include "data16.h"
+#elif TEST17
+  #include "data17.h"
+#elif TEST18
+  #include "data18.h"
+#endif

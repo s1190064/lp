@@ -1,0 +1,1 @@
+g++ -DTEST -g -DTEST1 -o test1 driver.cc ../scanner.cc ../error.cc
