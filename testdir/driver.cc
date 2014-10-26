@@ -1,8 +1,7 @@
-using namespace std;
-
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+using namespace std;
 #include "../token.h"
 #include "../scanner.h"
 #include "../error.h"
