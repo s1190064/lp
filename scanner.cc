@@ -1,6 +1,6 @@
 /*******************************************************************
   この次の行に，課題作成に参加したメンバのアカウントを記入すること．
-
+s1190220
 *******************************************************************/
 
 #include <string>
@@ -53,8 +53,11 @@ void initializeScanner(char *filename)
   if(srcFilePointer == NULL){
     errorExit(EFileNotFound);
   }
+  //lineNoの初期化
+  lineNo = 1;
+  //文字の先読み
   currentChar = getCharacter();
-  lineNo = 0;
+
 }
 
 
@@ -74,13 +77,10 @@ int yylex()
   //static unsigned char skipped; //skipprd 一文字余分に読んだときのために代入
   //string *id;// 識別子にいれるため
   
-  /*
-  if(skipped < 128 && skipped >= ' ' ){ //余分に読み込んでいる  
-    currentChar = skipped;
-    skipped = 150;//次回のif をはじくため
-  }
-  */
-
+  //if(skipped < 128 && skipped >= ' ' ){ //余分に読み込んでいる  
+  //  currentChar = skipped;
+  //  skipped = 150;//次回のif をはじくため
+  //}
   while (isWhiteSpace(currentChar)){ // 空白の読み飛ばし
     currentChar = getCharacter();
     //nowLine = lineNo;
@@ -119,16 +119,16 @@ int yylex()
     currentChar = getCharacter();
     return MULOP;
   }
-  else if(currentChar == Cdivide){// "/"を読んだ後
+  else if(currentChar == Cdivide){ // "/"を読んだ後
     currentChar = getCharacter();
-    if(currentChar == Cdivide){// "//" を読み、コメント文と判明
+    if(currentChar == Cdivide){ // "//" を読み、コメント文と判明
       //改行かEOFまで読み進める
       while(currentChar != '\n' && currentChar != EOF){
         currentChar = getCharacter();
       }
       goto START;
     }
-    else{// "/" 以外の文字を読んだ場合
+    else{ // "/" 以外の文字を読んだ場合
       yylval.op = Cdivide;//return MULOP;
       //skipped = currentChar;//一文字余分に読んでる
       return MULOP;
@@ -143,26 +143,27 @@ int yylex()
     currentChar = getCharacter();
     if(currentChar == Cand){ // "&&" を読み、論理積と判明
       yylval.op = Cand;
+      currentChar = getCharacter();
       return LOGOP;
     }
-    else{// "&" 以外の文字を読んだ場合、不正なもじのためエラー
+    else{ // "&" 以外の文字を読んだ場合、不正なもじのためエラー
       compileError(EIllegalChar,currentChar,currentChar);
-      //    return getIdentifier(currentChar);
+      //return getIdentifier(currentChar);
     }
   }
-  else if(currentChar == Cor){// "|" を読んだあと
+  else if(currentChar == Cor){ // "|" を読んだあと
     currentChar = getCharacter();
-    if(currentChar == Cor){// "||" を読み、論理積と判明
-      yylval.op = Cor;//
+    if(currentChar == Cor){ // "||" を読み、論理積と判明
+      yylval.op = Cor;
+      currentChar = getCharacter();
       return LOGOP;
     }
     else{// "|" 以外の文字を読んだ場合、不正なもじのためエラー
       compileError(EIllegalChar,currentChar,currentChar);
       // return getIdentifier(currentChar);
-    }
-    // ファイルの終わりを表すEOFを読んだとき
+    }    
   }
-  else if (currentChar == EOF)  {
+  else if (currentChar == EOF){ // ファイルの終わりを表すEOFを読んだとき
     return EOF;
   }
   // その他の文字は不正な文字なのでエラー
@@ -177,14 +178,9 @@ int yylex()
 /*   副作用: yylval.symbol に字句へのポインタを代入 */
 static int getIdentifier(int c)
 {
-  /*
-    ここで，識別子の字句を読み取る有限オートマトンをシミュレートする．
-    字句を保存するための局所変数を用意すること．
-    字句へのポインタを yylval.symbol に代入し，識別子のトークンを返す．
-  */
-
   //字句を保存する為の局所変数
   string tmp = "";
+  //英字と数値以外を受け取るまで読み進める
   while(isalpha(currentChar) || isdigit(currentChar)){
     tmp += currentChar;
     currentChar = getCharacter();
@@ -205,7 +201,6 @@ static int getCharacter()
   //retにファイルから読み込んだ一文字を代入
   char ret;
   ret = fgetc(srcFilePointer);
-  cerr << ret << ", ";
   //改行文字を読み込んだ場合の処理
   if(ret == '\n'){ 
     lineNo += 1;
