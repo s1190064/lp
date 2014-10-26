@@ -6,6 +6,7 @@
 #include <string>
 #include <stdio.h>
 #include <ctype.h>
+#include <iostream>
 using namespace std;
 #include "token.h"
 #include "scanner.h"
@@ -47,6 +48,13 @@ extern int yydebug;
 /*   副作用:   srcFilePointer にファイルポインタを代入 */
 void initializeScanner(char *filename)
 {
+  srcFilePointer = fopen(filename, "r");
+  // 原始プログラムのファイルが見つからない場合
+  if(srcFilePointer == NULL){
+    errorExit(EFileNotFound);
+  }
+  currentChar = getCharacter();
+  lineNo = 0;
 }
 
 
@@ -59,60 +67,81 @@ void initializeScanner(char *filename)
 /*         それをyylvalに格納する．                      */
 int yylex()
 {
- //START:
-  int ch_double=0, nowLine;//現在の行数、"//"の読み飛ばしに利用
-  char first_c;static unsigned char skipped;//skipprd 一文字余分に読んだときのために代入
+ START:
+  int ch_double=0;
+  int nowLine; //現在の行数、"//"の読み飛ばしに利用
+  char first_c;
+  static unsigned char skipped; //skipprd 一文字余分に読んだときのために代入
   string *id;// 識別子にいれるため
+  
+  /*
+  if(skipped < 128 && skipped >= ' ' ){ //余分に読み込んでいる  
+    currentChar = skipped;
+    skipped = 150;//次回のif をはじくため
+  }
+  */
 
-  if(skipped < 128 && skipped >= ' ' )//余分に読み込んでいる
-    {
-      currentChar = skipped;
-      skipped = 150;//次回のif をはじくため
-    }
-  while (isWhiteSpace(currentChar))  {  // 空白の読み飛ばし
+  while (isWhiteSpace(currentChar)){ // 空白の読み飛ばし
     currentChar = getCharacter();
-    nowLine = lineNo;
+    //nowLine = lineNo;
   }
+
   // この時点では currentChar には空白以外の文字が入っている
-  yylval.num = 0;
+  //yylval.num = 0;
   // 識別子または予約語の取得
-  if (isalpha(currentChar))  {//英字
-    id += currentChar;first_c = currentChar;//最初の一文字を代入
-    while(isalnum(currentChar)){currentChar = getCharacter(); id += currentChar;}
+  if (isalpha(currentChar)){
+    //id += currentChar;
+    //first_c = currentChar; //最初の一文字を代入
+    //while(isalnum(currentChar)){
+    //  currentChar = getCharacter();
+    //  id += currentChar;
+    //}
     //英数字読込、文字列に連結
-    yylval.symbol = id;
-    skipped = currentChar; //一文字余分に読んでる
-    return getIdentifier(first_c);//最初の英字を使う
+    //yylval.symbol = id;
+    //skipped = currentChar; //一文字余分に読んでる
+    //return getIdentifier(first_c); //最初の英字を使う
+    return getIdentifier(currentChar);
   }
-  else if(currentChar== Cadd){ yylval.op = Cadd; return ADDOP;}
-  else if( currentChar == Csubtract){ //加減算
+  else if(currentChar == Cadd){
+    yylval.op = Cadd;
+    currentChar = getCharacter();
+    return ADDOP;
+  }
+  else if(currentChar == Csubtract){ //加減算
     //加算と減算で別々の処理をするのは仕様にかいてあったため(ADDOPの表) 
-      yylval.op = Csubtract;
-      return ADDOP;
-    }
-  else if(currentChar == Cmultiply){//剰余算、のかけ算を判定
-      // else if(currentChar == MULT || currentChar == MOD ){//自分で定義を使用
-      yylval.op = Cmultiply;return MULOP;
-  }else if(currentChar == Cmodulo){
-    yylval.op = Cmodulo;
+    yylval.op = Cadd;
+    return ADDOP;
+  }
+  else if(currentChar == Cmultiply){ //剰余算、のかけ算を判定
+    //else if(currentChar == MULT || currentChar == MOD ){//自分で定義を使用
+    yylval.op = Cmultiply;
+    currentChar = getCharacter();
     return MULOP;
-  }else if(currentChar == Cdivide){// "/"を読んだ後
+  }
+  else if(currentChar == Cmodulo){
+    yylval.op = Cmodulo;
+    currentChar = getCharacter();
+    return MULOP;
+  }
+  else if(currentChar == Cdivide){// "/"を読んだ後
     currentChar = getCharacter();
     if(currentChar == Cdivide){// "//" を読み、コメント文と判明
       //改行かEOFまで読み進め
-      while( getCharacter() != EOF || lineNo == nowLine );
-    }else{// "/" 以外の文字を読んだ場合
+      while(getCharacter() != EOF || lineNo == nowLine );
+    }
+    else{// "/" 以外の文字を読んだ場合
       yylval.op = Cdivide;//return MULOP;
-      skipped = currentChar;//一文字余分に読んでる
-          return MULOP;
+      //skipped = currentChar;//一文字余分に読んでる
+      return MULOP;
     }
   }
-  else if(currentChar == Cand){// "&"を読んだ後
+  else if(currentChar == Cand){ // "&"を読んだ後
     currentChar = getCharacter();
-    if(currentChar == Cand){// "&&" を読み、論理積と判明
-      yylval.op = Cand;//
+    if(currentChar == Cand){ // "&&" を読み、論理積と判明
+      yylval.op = Cand;
       return LOGOP;
-    }else{// "&" 以外の文字を読んだ場合、不正なもじのためエラー
+    }
+    else{// "&" 以外の文字を読んだ場合、不正なもじのためエラー
       compileError(EIllegalChar,currentChar,currentChar);
       //    return getIdentifier(currentChar);
     }
@@ -122,20 +151,20 @@ int yylex()
     if(currentChar == Cor){// "||" を読み、論理積と判明
       yylval.op = Cor;//
       return LOGOP;
-      }else{// "|" 以外の文字を読んだ場合、不正なもじのためエラー
-    compileError(EIllegalChar,currentChar,currentChar);
-    //    return getIdentifier(currentChar);
-      }
+    }
+    else{// "|" 以外の文字を読んだ場合、不正なもじのためエラー
+      compileError(EIllegalChar,currentChar,currentChar);
+      // return getIdentifier(currentChar);
+    }
     // ファイルの終わりを表すEOFを読んだとき
-  }else if (currentChar == EOF)  {
+  }
+  else if (currentChar == EOF)  {
     return EOF;
   }
   // その他の文字は不正な文字なのでエラー
-  else  {
+  else{
     compileError(EIllegalChar,currentChar,currentChar);
   }
-
-  return 0;
 }
 
 /* 識別子を取得する                                 */
@@ -149,11 +178,19 @@ static int getIdentifier(int c)
     字句を保存するための局所変数を用意すること．
     字句へのポインタを yylval.symbol に代入し，識別子のトークンを返す．
   */
+
+  //字句を保存する為の局所変数
+  string tmp = "";
+  while(isalpha(currentChar) || isdigit(currentChar)){
+    tmp += currentChar;
+    currentChar = getCharacter();
+  }
   /*
   yylval.symbol = グローバル変数 yylval に字句を保存
                   yylval.symbol の型は y.tab.h を参照のこと．
-  */
-  return 0;
+  */  
+  yylval.symbol = new string(tmp); 
+  return ID;
 }
 
 /* 文字読み取りモジュール                       */
