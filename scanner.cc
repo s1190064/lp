@@ -1,6 +1,6 @@
 /*******************************************************************
   この次の行に，課題作成に参加したメンバのアカウントを記入すること．
-s1190220
+s1190220 s1190153 s1190186 s1190197
 *******************************************************************/
 
 #include <string>
@@ -12,7 +12,6 @@ using namespace std;
 #include "scanner.h"
 #include "error.h"
 #include "const.h"
-
 
 // 定数の定義
 #define FOREVER	1
@@ -71,35 +70,12 @@ void initializeScanner(char *filename)
 int yylex()
 {
  START:
-  int ch_double=0;
-  int nowLine; //現在の行数、"//"の読み飛ばしに利用
-  char first_c;
-  //static unsigned char skipped; //skipprd 一文字余分に読んだときのために代入
-  //string *id;// 識別子にいれるため
-  
-  //if(skipped < 128 && skipped >= ' ' ){ //余分に読み込んでいる  
-  //  currentChar = skipped;
-  //  skipped = 150;//次回のif をはじくため
-  //}
   while (isWhiteSpace(currentChar)){ // 空白の読み飛ばし
     currentChar = getCharacter();
-    //nowLine = lineNo;
   }
-
   // この時点では currentChar には空白以外の文字が入っている
-  //yylval.num = 0;
   // 識別子または予約語の取得
   if (isalpha(currentChar)){
-    //id += currentChar;
-    //first_c = currentChar; //最初の一文字を代入
-    //while(isalnum(currentChar)){
-    //  currentChar = getCharacter();
-    //  id += currentChar;
-    //}
-    //英数字読込、文字列に連結
-    //yylval.symbol = id;
-    //skipped = currentChar; //一文字余分に読んでる
-    //return getIdentifier(first_c); //最初の英字を使う
     return getIdentifier(currentChar);
   }
  if(currentChar == Cadd){
@@ -114,7 +90,6 @@ int yylex()
     return ADDOP;
   }
   else if(currentChar == Cmultiply){ //剰余算、のかけ算を判定
-    //else if(currentChar == MULT || currentChar == MOD ){//自分で定義を使用
     yylval.op = Cmultiply;
     currentChar = getCharacter();
     return MULOP;
@@ -130,7 +105,6 @@ int yylex()
     }
     else{ // "/" 以外の文字を読んだ場合
       yylval.op = Cdivide;//return MULOP;
-      //skipped = currentChar;//一文字余分に読んでる
       return MULOP;
     }
   }
@@ -148,7 +122,6 @@ int yylex()
     }
     else{ // "&" 以外の文字を読んだ場合、不正なもじのためエラー
       compileError(EIllegalChar,currentChar,currentChar);
-      //return getIdentifier(currentChar);
     }
   }
   else if(currentChar == Cor){ // "|" を読んだあと
@@ -160,7 +133,6 @@ int yylex()
     }
     else{// "|" 以外の文字を読んだ場合、不正なもじのためエラー
       compileError(EIllegalChar,currentChar,currentChar);
-      // return getIdentifier(currentChar);
     }    
   }
   else if (currentChar == EOF){ // ファイルの終わりを表すEOFを読んだとき
@@ -178,6 +150,7 @@ int yylex()
 /*   副作用: yylval.symbol に字句へのポインタを代入 */
 static int getIdentifier(int c)
 {
+  //引数のcを使っていないが問題ないと判断した
   //字句を保存する為の局所変数
   string tmp = "";
   //英字と数値以外を受け取るまで読み進める
