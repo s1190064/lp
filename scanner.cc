@@ -45,7 +45,7 @@ void initializeScanner(char *filename)
   // 原始プログラムのファイルが見つからない場合
   if(srcFilePointer == NULL){
     //エラー処理
-    errorExit(EFileNotFound);
+    errorExit(EFileNotFound, filename);
   }
   //lineNoの初期化
   lineNo = 1;
