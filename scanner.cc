@@ -15,6 +15,7 @@ using namespace std;
 
 // 定数の定義
 #define FOREVER	1
+#define HPP 2
 
 //文字判定マクロ
 // 空白文字なら真
